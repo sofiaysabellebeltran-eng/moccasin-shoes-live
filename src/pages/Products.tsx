@@ -10,27 +10,54 @@ export default function ProductsPage() {
   return (
     <div>
       {/* --- MEGA BUNDLE HERO --- */}
-      <section className="bg-[#1a1a1a] text-[#faf9f7] px-6 py-24 md:px-10 md:py-32">
-        <div className="max-w-[1440px] mx-auto grid md:grid-cols-2 gap-16 items-center">
+      <section className="bg-[#1a1a1a] text-[#faf9f7] px-6 py-20 md:px-10 md:py-28">
+        <div className="max-w-[1440px] mx-auto grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
+          
+          {/* Left Side: Text */}
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/50 mb-4">The Ultimate Package · Physical + Digital</p>
-            <h1 className="text-5xl md:text-7xl font-black uppercase tracking-[-0.03em] leading-[0.9] mb-6">
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#faf9f7]/50 mb-4">Physical + Digital Package</p>
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-[-0.03em] leading-[0.85] mb-6">
               The Mega<br/>Bundle
             </h1>
-            <p className="text-sm md:text-base text-white/70 mb-8 max-w-md leading-relaxed">
-              Equip your business and your wardrobe. Get <strong>5 pairs of premium Moccasin shoes</strong> plus the <strong>50-App Digital Bundle</strong>. Everything you need to look good and generate revenue immediately.
+            <p className="text-sm md:text-base text-[#faf9f7]/70 mb-8 max-w-md leading-relaxed">
+              The ultimate business and lifestyle package. Equip your wardrobe with <strong className="text-white">5 premium Moccasin shoes</strong> and scale your income with the <strong className="text-white">50-App Digital Bundle</strong>.
             </p>
-            <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center gap-6">
               <Link to="/bundle" className="bg-[#faf9f7] text-[#1a1a1a] px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-white transition">
                 Buy Bundle - ₱7,500
               </Link>
-              <span className="text-xs font-medium tracking-widest text-white/50 uppercase">Limited Offer</span>
+              <span className="text-xs font-medium tracking-widest text-[#faf9f7]/50 uppercase">Save ₱3,000+</span>
             </div>
           </div>
-          <div className="aspect-square bg-white/5 border border-white/10 flex items-center justify-center relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition duration-700" />
-            <span className="text-white/20 text-5xl md:text-7xl font-black tracking-tighter text-center leading-tight">5 SHOES<br/>+<br/>50 APPS</span>
+
+          {/* Right Side: Visual Collage */}
+          <div className="relative aspect-square md:aspect-[4/3] bg-white/5 border border-white/10 rounded-sm overflow-hidden group">
+            {/* Grid of 5 Shoes */}
+            <div className="absolute inset-0 grid grid-cols-2 grid-rows-3 gap-1 p-2">
+              <div className="col-span-2 row-span-2 relative overflow-hidden bg-[#e8e4df]">
+                <img src="/products/makabayan-series-agila.jpg" className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="Shoe 1" />
+              </div>
+              <div className="relative overflow-hidden bg-[#e8e4df]">
+                <img src="/products/bayani-habi-series-bonifacio.jpg" className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="Shoe 2" />
+              </div>
+              <div className="relative overflow-hidden bg-[#e8e4df]">
+                <img src="/products/bayani-tutos-series-aguinaldo.jpg" className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="Shoe 3" />
+              </div>
+              <div className="relative overflow-hidden bg-[#e8e4df]">
+                <img src="/products/moxies-lite-marikit.jpg" className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="Shoe 4" />
+              </div>
+              <div className="relative overflow-hidden bg-[#e8e4df]">
+                <img src="/products/moxies-lite-hiraya.jpg" className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="Shoe 5" />
+              </div>
+            </div>
+            
+            {/* Floating 50 Apps Badge */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#1a1a1a]/90 backdrop-blur-sm border border-white/20 p-6 md:p-8 text-center shadow-2xl">
+              <p className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white">+50 Apps</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#faf9f7]/70 mt-1">Digital Delivery</p>
+            </div>
           </div>
+
         </div>
       </section>
 
