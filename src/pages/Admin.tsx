@@ -87,8 +87,7 @@ export default function AdminPage() {
           <thead className="bg-[#faf9f7] border-b border-black/10">
             <tr>
               <th className="p-4 font-bold uppercase tracking-widest text-[11px] text-black/50">Date & Time</th>
-              <th className="p-4 font-bold uppercase tracking-widest text-[11px] text-black/50">Ref Code</th>
-              <th className="p-4 font-bold uppercase tracking-widest text-[11px] text-black/50">Customer</th>
+              <th className="p-4 font-bold uppercase tracking-widest text-[11px] text-black/50">Customer & Items</th>
               <th className="p-4 font-bold uppercase tracking-widest text-[11px] text-black/50">Total</th>
               <th className="p-4 font-bold uppercase tracking-widest text-[11px] text-black/50">Payment Ref</th>
               <th className="p-4 font-bold uppercase tracking-widest text-[11px] text-black/50">Status</th>
@@ -97,20 +96,30 @@ export default function AdminPage() {
           </thead>
           <tbody>
             {orders.length === 0 ? (
-              <tr><td colSpan={7} className="p-8 text-center text-black/50">No orders yet.</td></tr>
-            ) : orders.map((order) => (
+              <tr><td colSpan={6} className="p-8 text-center text-black/50">No orders yet.</td></tr>
+            ) : orders.map((order) => {
+              let parsedItems = [];
+              try { parsedItems = JSON.parse(order.items); } catch(e) {}
+              
+              return (
               <tr key={order.id} className="border-b border-black/5 hover:bg-black/5">
-                <td className="p-4 text-xs">
+                <td className="p-4 text-xs whitespace-nowrap">
                   <p className="font-bold">{new Date(order.created_at).toLocaleDateString()}</p>
                   <p className="text-black/50">{new Date(order.created_at).toLocaleTimeString()}</p>
+                  <p className="text-[10px] text-black/40 mt-1">{order.reference}</p>
                 </td>
-                <td className="p-4 font-bold text-xs">{order.reference}</td>
                 <td className="p-4">
                   <p className="font-bold">{order.customer_name}</p>
-                  <p className="text-xs text-black/50">{order.city}</p>
+                  <p className="text-xs text-black/50 mb-2">{order.city}</p>
+                  <div className="bg-gray-50 border border-gray-100 p-2 rounded text-xs">
+                    <p className="font-bold text-[10px] uppercase text-gray-400 mb-1">Items:</p>
+                    {parsedItems.map((item: any, i: number) => (
+                      <div key={i} className="text-gray-700">• {item.name} {item.size ? `(Size ${item.size})` : ''} x{item.quantity}</div>
+                    ))}
+                  </div>
                 </td>
-                <td className="p-4 font-medium">{formatPHP(order.total)}</td>
-                <td className="p-4 font-mono text-xs bg-yellow-50">{order.paymentRef || "N/A"}</td>
+                <td className="p-4 font-medium whitespace-nowrap">{formatPHP(order.total)}</td>
+                <td className="p-4 font-mono text-xs bg-yellow-50 font-bold">{order.paymentRef || "N/A"}</td>
                 <td className="p-4">
                   <span className={`px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full ${order.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
                     {order.status}
@@ -118,11 +127,11 @@ export default function AdminPage() {
                 </td>
                 <td className="p-4 text-right">
                   {order.status === "Paid" && (
-                    <button onClick={() => handleShip(order)} className="bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-black/80">Ship</button>
+                    <button onClick={() => handleShip(order)} className="bg-black text-white px-4 py-2 text-xs font-bold uppercase tracking-widest hover:bg-black/80 whitespace-nowrap">Ship</button>
                   )}
                 </td>
               </tr>
-            ))}
+            )})}
           </tbody>
         </table>
       </div>

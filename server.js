@@ -107,7 +107,7 @@ app.post("/api/manual-save", async (req, res) => {
 
     const isBundle = reference.startsWith("BUNDLE-");
     const emailHtml = isBundle 
-      ? `<h2>Thank you for purchasing the 50-App Bundle, ${customer.name}!</h2><p>Click the link below to download your apps immediately:</p><p><a href="${BUNDLE_LINK}" style="background:black;color:white;padding:12px 24px;text-decoration:none;display:inline-block;">Download 50-App Bundle</a></p>`
+      ? `<h2>Thank you for purchasing the Mega Bundle, ${customer.name}!</h2><p>Your 5 shoes are being prepared for shipping.</p><p>Click the link below to download your 50 digital apps immediately:</p><p><a href="${BUNDLE_LINK}" style="background:black;color:white;padding:12px 24px;text-decoration:none;display:inline-block;">Download 50-App Bundle</a></p>`
       : `<h2>Thank you for your order, ${customer.name}!</h2><p>We received your payment of ₱${total}.</p>`;
 
     await transporter.sendMail({
@@ -150,6 +150,7 @@ app.post("/api/admin/ship", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
+
 
 
 

@@ -16,7 +16,7 @@ export default function SuccessPage() {
 
       let payload = null;
       if (pendingShoe) payload = JSON.parse(pendingShoe);
-      else if (pendingBundle) payload = { ...JSON.parse(pendingBundle), items: [{name: "50-App Bundle", quantity: 1}], total: 7500, paymentRef: "Bundle" };
+      else if (pendingBundle) payload = JSON.parse(pendingBundle);
 
       if (!payload) { setStatus("❌ No pending order found."); return; }
 
