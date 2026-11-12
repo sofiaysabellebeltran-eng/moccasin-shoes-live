@@ -92,7 +92,7 @@ app.post("/api/bundle-checkout", async (req, res) => {
 
 // --- SAVE & EMAIL LOGIC (For local testing / manual bypass) ---
 app.post("/api/manual-save", async (req, res) => {
-  const { reference, customer, items, total } = req.body;
+  const { reference, customer, items, total, paymentRef } = req.body;
   try {
     let orders = JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
     if (!orders.find(o => o.reference === reference)) {
@@ -150,5 +150,6 @@ app.post("/api/admin/ship", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
+
 
 

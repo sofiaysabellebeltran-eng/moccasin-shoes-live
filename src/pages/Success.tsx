@@ -2,7 +2,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001";
+const API_URL = import.meta.env.VITE_API_URL || "https://moccasin-api.onrender.com";
 
 export default function SuccessPage() {
   const { clearCart } = useCart();
@@ -16,7 +16,7 @@ export default function SuccessPage() {
 
       let payload = null;
       if (pendingShoe) payload = JSON.parse(pendingShoe);
-      else if (pendingBundle) payload = { ...JSON.parse(pendingBundle), items: [{name: "50-App Bundle", quantity: 1}], total: 7500 };
+      else if (pendingBundle) payload = { ...JSON.parse(pendingBundle), items: [{name: "50-App Bundle", quantity: 1}], total: 7500, paymentRef: "Bundle" };
 
       if (!payload) { setStatus("❌ No pending order found."); return; }
 
@@ -39,7 +39,6 @@ export default function SuccessPage() {
         setStatus("❌ Network error.");
       }
     };
-    
     saveOrder();
   }, [clearCart, navigate]);
 
