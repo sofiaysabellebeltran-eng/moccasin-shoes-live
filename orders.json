@@ -1,0 +1,78 @@
+[
+  {
+    "id": 1794404584345,
+    "reference": "MOC-1794404546411",
+    "customer_name": "Luigi Ricamora",
+    "email": "sofiaysabellesaljay@gmail.com",
+    "phone": "09763791569",
+    "address": "23 Nevada St Camella Homes",
+    "city": "Bacoor City",
+    "items": [
+      {
+        "product": {
+          "id": "makabayan-series-arnis",
+          "name": "Arnis",
+          "series": "Makabayan Series",
+          "audience": "Men",
+          "productCode": "MC001",
+          "pricePhp": 2499,
+          "availableSizes": [
+            "7",
+            "7.5",
+            "8",
+            "8.5",
+            "9",
+            "10.5",
+            "11.5"
+          ],
+          "description": "Arnis brings a composed, purposeful character to an easy-to-wear moccasin.",
+          "colorway": "ink",
+          "imageUrl": "/products/makabayan-series-arnis.jpg"
+        },
+        "size": "8.5",
+        "quantity": 2
+      }
+    ],
+    "total": 4998,
+    "status": "Paid",
+    "created_at": "2026-11-11T13:43:04.345Z"
+  },
+  {
+    "id": 1794404967941,
+    "reference": "MOC-1794404925328",
+    "customer_name": "Luigi Ricamora",
+    "email": "sofiaysabellebeltran@gmail.com",
+    "phone": "09763791569",
+    "address": "23 Nevada St Camella Homes",
+    "city": "Bacoor City",
+    "items": [
+      {
+        "product": {
+          "id": "makabayan-series-arnis",
+          "name": "Arnis",
+          "series": "Makabayan Series",
+          "audience": "Men",
+          "productCode": "MC001",
+          "pricePhp": 2499,
+          "availableSizes": [
+            "7",
+            "7.5",
+            "8",
+            "8.5",
+            "9",
+            "10.5",
+            "11.5"
+          ],
+          "description": "Arnis brings a composed, purposeful character to an easy-to-wear moccasin.",
+          "colorway": "ink",
+          "imageUrl": "/products/makabayan-series-arnis.jpg"
+        },
+        "size": "10.5",
+        "quantity": 1
+      }
+    ],
+    "total": 2614,
+    "status": "Paid",
+    "created_at": "2026-11-11T13:49:27.941Z"
+  }
+]
