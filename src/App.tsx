@@ -7,6 +7,7 @@ import CartPage from "./pages/Cart";
 import CheckoutPage from "./pages/Checkout";
 import SuccessPage from "./pages/Success";
 import AdminPage from "./pages/Admin";
+import BundlePage from "./pages/Bundle";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
             <Route path="checkout" element={<CheckoutPage />} />
             <Route path="checkout/success" element={<SuccessPage />} />
             <Route path="admin" element={<AdminPage />} />
+            <Route path="bundle" element={<BundlePage />} />
           </Route>
         </Routes>
       </BrowserRouter>
