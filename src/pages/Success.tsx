@@ -2,6 +2,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:3001";
+
 export default function SuccessPage() {
   const { clearCart } = useCart();
   const [saving, setSaving] = useState(false);
@@ -17,15 +19,12 @@ export default function SuccessPage() {
 
     try {
       const orderData = JSON.parse(pending);
-      // USING 127.0.0.1 TO FIX WINDOWS IPV6 ISSUES
-      const res = await fetch("${import.meta.env.VITE_API_URL || "http://127.0.0.1:3001"}/api/manual-save", {
+      const res = await fetch(`${API_URL}/api/manual-save`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData)
       });
-      
       const data = await res.json();
-      
       if (res.ok) {
         setMessage("✅ Order saved! Check the backend terminal for email status.");
         localStorage.removeItem("pendingOrder");
@@ -47,14 +46,11 @@ export default function SuccessPage() {
       </div>
       <h1 className="text-4xl font-black uppercase tracking-tight mb-4">Order Confirmed!</h1>
       <p className="text-black/60 mb-8 max-w-md">Click the button below to finalize your order and receive your email receipt.</p>
-      
       <button onClick={handleSave} disabled={saving} className="bg-black text-white px-8 py-4 text-xs font-bold uppercase tracking-widest hover:bg-black/80 disabled:opacity-50 mb-4">
         {saving ? "Processing..." : "Complete Order & Send Email"}
       </button>
-
       {message && <p className="font-bold text-sm text-black/70 mb-4">{message}</p>}
       <Link to="/" className="text-sm underline mt-4 hover:text-black/50">Return to Store</Link>
     </div>
   );
 }
-

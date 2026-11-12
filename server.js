@@ -7,7 +7,7 @@ import path from "path";
 
 const app = express();
 const PORT = 3001;
-const PAYMONGO_SECRET = "sk_test_kRT4BBtJz1iRuxPQujF4KdEQ";
+const PAYMONGO_SECRET = process.env.PAYMONGO_SECRET_KEY;
 const DB_FILE = path.join(process.cwd(), "orders.json");
 
 if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, JSON.stringify([]));
@@ -127,3 +127,4 @@ app.post("/api/admin/ship", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`🚀 Backend running on http://127.0.0.1:${PORT}`));
+

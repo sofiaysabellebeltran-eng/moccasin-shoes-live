@@ -4,6 +4,8 @@ import { useCart } from "../context/CartContext";
 import { formatPHP } from "../shared/catalog";
 import { calculateShipping, SHIPPING_ZONE_LABELS, ShippingZone } from "../shared/shipping";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 export default function CheckoutPage() {
   const { items, total } = useCart();
   const navigate = useNavigate();
@@ -19,19 +21,14 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
       const reference = "MOC-" + Date.now();
-      
-      // Save order details for the success page
       localStorage.setItem("pendingOrder", JSON.stringify({ reference, customer: form, items, total: finalTotal }));
-
-      const response = await fetch("${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/checkout", {
+      const response = await fetch(`${API_URL}/api/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items, shippingFee, customer: form, reference, origin: window.location.origin }),
       });
-
       const data = await response.json();
       if (data.checkoutUrl) window.location.href = data.checkoutUrl;
       else { alert("Error creating session"); setIsSubmitting(false); }
@@ -72,4 +69,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
