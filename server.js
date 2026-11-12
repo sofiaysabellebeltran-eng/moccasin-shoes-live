@@ -7,7 +7,7 @@ import path from "path";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const PAYMONGO_SECRET = process.env.PAYMONGO_SECRET_KEY || "sk_test_kRT4BBtJz1iRuxPQujF4KdEQ";
+const PAYMONGO_SECRET = process.env.PAYMONGO_SECRET_KEY;
 const DB_FILE = path.join(process.cwd(), "orders.json");
 const BUNDLE_LINK = "https://drive.google.com/drive/folders/13a5ZBri95VXlxLwp6q_BMsukh6ZXCst7";
 
@@ -150,3 +150,4 @@ app.post("/api/admin/ship", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
+
