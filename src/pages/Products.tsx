@@ -13,7 +13,6 @@ export default function ProductsPage() {
       <section className="bg-[#1a1a1a] text-[#faf9f7] px-6 py-20 md:px-10 md:py-28">
         <div className="max-w-[1440px] mx-auto grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
           
-          {/* Left Side: Text */}
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#faf9f7]/50 mb-4">Physical + Digital Package</p>
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-[-0.03em] leading-[0.85] mb-6">
@@ -30,9 +29,7 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          {/* Right Side: Visual Collage */}
           <div className="relative aspect-square md:aspect-[4/3] bg-white/5 border border-white/10 rounded-sm overflow-hidden group">
-            {/* Grid of 5 Shoes */}
             <div className="absolute inset-0 grid grid-cols-2 grid-rows-3 gap-1 p-2">
               <div className="col-span-2 row-span-2 relative overflow-hidden bg-[#e8e4df]">
                 <img src="/products/makabayan-series-agila.jpg" className="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="Shoe 1" />
@@ -51,7 +48,6 @@ export default function ProductsPage() {
               </div>
             </div>
             
-            {/* Floating 50 Apps Badge */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#1a1a1a]/90 backdrop-blur-sm border border-white/20 p-6 md:p-8 text-center shadow-2xl">
               <p className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-white">+50 Apps</p>
               <p className="text-[10px] font-bold uppercase tracking-widest text-[#faf9f7]/70 mt-1">Digital Delivery</p>

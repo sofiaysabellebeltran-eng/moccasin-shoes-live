@@ -46,7 +46,7 @@ app.post("/api/checkout", async (req, res) => {
         data: {
           attributes: {
             line_items: lineItems,
-            payment_method_types: ["qrph", "paymaya"],
+            payment_method_types: ["qrph"],
             success_url: `${origin}/checkout/success`,
             cancel_url: `${origin}/cart`,
             reference_number: reference,
@@ -75,7 +75,7 @@ app.post("/api/bundle-checkout", async (req, res) => {
         data: {
           attributes: {
             line_items: [{ name: "50-App Bundle", amount: 750000, currency: "PHP", quantity: 1 }],
-            payment_method_types: ["qrph", "paymaya"],
+            payment_method_types: ["qrph"],
             success_url: `${origin}/checkout/success`,
             cancel_url: `${origin}/bundle`,
             reference_number: reference,
@@ -150,4 +150,5 @@ app.post("/api/admin/ship", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
+
 
