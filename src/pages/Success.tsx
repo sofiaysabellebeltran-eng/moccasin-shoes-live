@@ -40,7 +40,6 @@ export default function SuccessPage() {
       }
     };
     
-    // Automatically save when page loads
     saveOrder();
   }, [clearCart, navigate]);
 

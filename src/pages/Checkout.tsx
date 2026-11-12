@@ -24,11 +24,13 @@ export default function CheckoutPage() {
     try {
       const reference = "MOC-" + Date.now();
       localStorage.setItem("pendingOrder", JSON.stringify({ reference, customer: form, items, total: finalTotal }));
+      
       const response = await fetch(`${API_URL}/api/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ items, shippingFee, customer: form, reference, origin: window.location.origin }),
       });
+      
       const data = await response.json();
       if (data.checkoutUrl) window.location.href = data.checkoutUrl;
       else { alert("Error creating session"); setIsSubmitting(false); }
