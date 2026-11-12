@@ -9,27 +9,27 @@ export default function ProductsPage() {
 
   return (
     <div>
-      {/* --- BUNDLE PROMO HERO --- */}
+      {/* --- MEGA BUNDLE HERO --- */}
       <section className="bg-[#1a1a1a] text-[#faf9f7] px-6 py-24 md:px-10 md:py-32">
         <div className="max-w-[1440px] mx-auto grid md:grid-cols-2 gap-16 items-center">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/50 mb-4">Digital Product · Instant Delivery</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-white/50 mb-4">The Ultimate Package · Physical + Digital</p>
             <h1 className="text-5xl md:text-7xl font-black uppercase tracking-[-0.03em] leading-[0.9] mb-6">
-              The 50-App<br/>Bundle
+              The Mega<br/>Bundle
             </h1>
             <p className="text-sm md:text-base text-white/70 mb-8 max-w-md leading-relaxed">
-              The ultimate digital cash engine. 50 fully built, production-ready web applications designed to generate revenue immediately. Includes source code and deployment guides.
+              Equip your business and your wardrobe. Get <strong>5 pairs of premium Moccasin shoes</strong> plus the <strong>50-App Digital Bundle</strong>. Everything you need to look good and generate revenue immediately.
             </p>
             <div className="flex items-center gap-6">
               <Link to="/bundle" className="bg-[#faf9f7] text-[#1a1a1a] px-8 py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-white transition">
-                Buy Bundle - ₱4,999
+                Buy Bundle - ₱7,500
               </Link>
-              <span className="text-xs font-medium tracking-widest text-white/50 uppercase">Instant Access</span>
+              <span className="text-xs font-medium tracking-widest text-white/50 uppercase">Limited Offer</span>
             </div>
           </div>
           <div className="aspect-square bg-white/5 border border-white/10 flex items-center justify-center relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-tr from-white/0 to-white/10 opacity-0 group-hover:opacity-100 transition duration-700" />
-            <span className="text-white/20 text-6xl md:text-8xl font-black tracking-tighter">50 APPS</span>
+            <span className="text-white/20 text-5xl md:text-7xl font-black tracking-tighter text-center leading-tight">5 SHOES<br/>+<br/>50 APPS</span>
           </div>
         </div>
       </section>
