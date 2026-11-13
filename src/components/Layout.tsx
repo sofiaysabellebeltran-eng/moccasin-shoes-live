@@ -1,13 +1,14 @@
 ﻿import { Link, Outlet } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import SupportWidget from "./SupportWidget";
+import Footer from "./Footer";
 
 export default function Layout() {
   const { items } = useCart();
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-[#faf9f7] text-[#1a1a1a]">
+    <div className="min-h-screen flex flex-col bg-[#faf9f7] text-[#1a1a1a]">
       <header className="sticky top-0 z-50 bg-[#faf9f7]/90 backdrop-blur border-b border-black/5 px-6 py-4 md:px-10 flex items-center justify-between">
         <Link to="/" className="flex items-center hover:opacity-80 transition">
           <img src="/logo.png" alt="Moccasin" className="h-10 md:h-12 w-auto object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
@@ -18,10 +19,11 @@ export default function Layout() {
         </Link>
       </header>
       
-      <main>
+      <main className="flex-1">
         <Outlet />
       </main>
 
+      <Footer />
       <SupportWidget />
     </div>
   );

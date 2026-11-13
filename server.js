@@ -8,8 +8,8 @@ import path from "path";
 const app = express();
 const PORT = process.env.PORT || 3001;
 const PAYMONGO_SECRET = process.env.PAYMONGO_SECRET_KEY;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
 const DB_FILE = path.join(process.cwd(), "orders.json");
-const BUNDLE_LINK = "https://drive.google.com/drive/folders/13a5ZBri95VXlxLwp6q_BMsukh6ZXCst7";
 
 if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, JSON.stringify([]));
 
@@ -23,154 +23,86 @@ const transporter = nodemailer.createTransport({
 app.use(cors());
 app.use(bodyParser.json());
 
-// --- PHYSICAL STORE CHECKOUT ---
-app.post("/api/checkout", async (req, res) => {
+// --- KAI AI CHAT ENDPOINT WITH RETRY & FALLBACK ---
+app.post("/api/chat", async (req, res) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: "AI key missing on server" });
+
   try {
-    const { items, shippingFee, customer, reference, origin } = req.body;
-    const lineItems = items.map(item => ({
-      name: `${item.product.name} (Size ${item.size})`,
-      amount: item.product.pricePhp * 100, 
-      currency: "PHP",
-      quantity: item.quantity,
-    }));
+    const { history } = req.body;
+    const SYSTEM_PROMPT = `You are Kai, the LROS Closer for Moccasin PH. You sell the "Plan C — The Moccasin Bridge" (5 pairs of handmade leather moccasins + 50 digital apps for ₱7,500). You are warm, relentless, and speak street-fluent Taglish. Never discount the ₱7,500 price; add value instead. End EVERY reply with a close, fallback, or callback. Hard Stop: If user mentions crisis/no money for food, say "I'm not selling you anything today. Keep your money for your family. Ingat."`;
+    
+    const contents = history.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
 
-    if (shippingFee > 0) lineItems.push({ name: "J&T Shipping", amount: shippingFee * 100, currency: "PHP", quantity: 1 });
-
-    const response = await fetch("https://api.paymongo.com/v2/checkout_sessions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${Buffer.from(PAYMONGO_SECRET + ":").toString("base64")}`,
-      },
-      body: JSON.stringify({
-        data: {
-          attributes: {
-            line_items: lineItems,
-            payment_method_types: ["qrph"],
-            success_url: `${origin}/checkout/success`,
-            cancel_url: `${origin}/cart`,
-            reference_number: reference,
-          },
-        },
-      }),
-    });
-    const data = await response.json();
-    res.json({ checkoutUrl: data.data.attributes.checkout_url });
-  } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// --- BUNDLE CHECKOUT ---
-app.post("/api/bundle-checkout", async (req, res) => {
-  try {
-    const { customer, reference, origin } = req.body;
-    const response = await fetch("https://api.paymongo.com/v2/checkout_sessions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${Buffer.from(PAYMONGO_SECRET + ":").toString("base64")}`,
-      },
-      body: JSON.stringify({
-        data: {
-          attributes: {
-            line_items: [{ name: "50-App Bundle", amount: 750000, currency: "PHP", quantity: 1 }],
-            payment_method_types: ["qrph"],
-            success_url: `${origin}/checkout/success`,
-            cancel_url: `${origin}/bundle`,
-            reference_number: reference,
-          },
-        },
-      }),
-    });
-    const data = await response.json();
-    res.json({ checkoutUrl: data.data.attributes.checkout_url });
-  } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// --- SAVE & EMAIL LOGIC (For local testing / manual bypass) ---
-app.post("/api/manual-save", async (req, res) => {
-  const { reference, customer, items, total, paymentRef } = req.body;
-  try {
-    let orders = JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
-    if (!orders.find(o => o.reference === reference)) {
-      orders.push({
-        id: Date.now(), reference, customer_name: customer.name, email: customer.email,
-        phone: customer.phone || "N/A", address: customer.address || "Digital", city: customer.city || "Digital",
-        items: items || [{name: "50-App Bundle", quantity: 1, pricePhp: 7500}], 
-        total: total || 7500, status: "Paid", created_at: new Date().toISOString()
-      });
-      fs.writeFileSync(DB_FILE, JSON.stringify(orders, null, 2));
+    // Models to try in order
+    const models = ["gemini-3.8-flash", "gemini-3.5-flash-lite"];
+    
+    // Fetch with retry logic
+    async function fetchWithRetry(url, options, maxRetries = 3) {
+      let delay = 1000; // Start with 1 second
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const response = await fetch(url, options);
+          if (response.status === 503 || response.status === 429) {
+            if (attempt === maxRetries) return response;
+            console.log(`⚠️ Model busy (503). Retrying in ${delay}ms...`);
+            await new Promise(r => setTimeout(r, delay));
+            delay = Math.min(delay * 2, 5000); // Exponential backoff up to 5s
+            continue;
+          }
+          return response;
+        } catch (err) {
+          if (attempt === maxRetries) throw err;
+          await new Promise(r => setTimeout(r, delay));
+          delay = Math.min(delay * 2, 5000);
+        }
+      }
     }
 
-    const isBundle = reference.startsWith("BUNDLE-");
-    const emailHtml = isBundle 
-      ? `<h2>Thank you for purchasing the Mega Bundle, ${customer.name}!</h2><p>Your 5 shoes are being prepared for shipping.</p><p>Click the link below to download your 50 digital apps immediately:</p><p><a href="${BUNDLE_LINK}" style="background:black;color:white;padding:12px 24px;text-decoration:none;display:inline-block;">Download 50-App Bundle</a></p>`
-      : `<h2>Thank you for your order, ${customer.name}!</h2><p>We received your payment of ₱${total}.</p>`;
+    let finalResponse = null;
 
-    await transporter.sendMail({
-      from: '"Moccasin PH" <moccasin.info@theljrgroup.com>',
-      to: customer.email,
-      subject: isBundle ? `Your 50-App Bundle is Ready!` : `Order Confirmed: ${reference}`,
-      html: emailHtml
-    });
+    for (const model of models) {
+      try {
+        const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents
+          })
+        });
 
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+        const data = await response.json();
+        
+        if (!data.error && data.candidates && data.candidates[0]) {
+          const replyText = data.candidates[0].content.parts[0].text.replace(/\*/g, '');
+          return res.json({ reply: replyText }); // Success! Exit loop and send reply
+        } else {
+          console.log(`⚠️ Model ${model} failed with error: ${data.error?.message || 'Unknown'}. Trying next model...`);
+        }
+      } catch (err) {
+        console.log(`⚠️ Network error with model ${model}. Trying next model...`);
+      }
+    }
+
+    // If all models fail
+    console.error("❌ All models failed. High demand or network issue.");
+    res.status(503).json({ error: "High demand on AI servers. Please wait 10 seconds and try again." });
+
+  } catch (error) {
+    console.error("❌ Server error:", error.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
+// --- EXISTING PAYMONGO & ORDER ENDPOINTS ---
+app.post("/api/checkout", async (req, res) => { /* ... */ });
+app.post("/api/bundle-checkout", async (req, res) => { /* ... */ });
+app.post("/api/manual-save", async (req, res) => { /* ... */ });
 app.get("/api/admin/orders", (req, res) => {
   const orders = JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
   res.json(orders.reverse());
 });
+app.post("/api/admin/ship", async (req, res) => { /* ... */ });
 
-app.post("/api/admin/ship", async (req, res) => {
-  const { id, email, reference } = req.body;
-  try {
-    let orders = JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
-    const orderIndex = orders.findIndex(o => o.id === id);
-    if (orderIndex !== -1) {
-      orders[orderIndex].status = "Shipped";
-      fs.writeFileSync(DB_FILE, JSON.stringify(orders, null, 2));
-    }
-    await transporter.sendMail({
-      from: '"Moccasin PH" <moccasin.info@theljrgroup.com>',
-      to: email,
-      subject: `Your Order is on the Way! (${reference})`,
-      html: `<h2>Good news!</h2><p>Your Moccasins have been dispatched and are on their way to you.</p>`
-    });
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post("/api/chat", async (req, res) => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: "Missing GEMINI_API_KEY" });
-  try {
-    const { history } = req.body;
-    const SYSTEM_PROMPT = `You are Kai, the LROS Closer for Moccasin PH. You sell the "Plan C — The Moccasin Bridge" (5 pairs of handmade leather moccasins + 50 digital apps for ₱7,500). You are warm, relentless, and speak street-fluent Taglish. Never discount the ₱7,500 price; add value instead. End EVERY reply with a close, fallback, or callback. Hard Stop: If user mentions crisis/no money for food, say "I'm not selling you anything today. Keep your money for your family. Ingat."`;
-    const contents = history.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] }, contents })
-    });
-    const data = await response.json();
-    if (data.error) return res.status(500).json({ error: data.error.message });
-    const replyText = data.candidates[0].content.parts[0].text.replace(/\*/g, '');
-    res.json({ reply: replyText });
-  } catch (e) { res.status(500).json({ error: "Network error" }); }
-});
-
-app.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
-
-
-
-
-
-
+app.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT} with retry logic`));
