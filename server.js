@@ -162,11 +162,13 @@ app.post("/api/chat", async (req, res) => {
     });
     const data = await response.json();
     if (data.error) return res.status(500).json({ error: data.error.message });
-    res.json({ reply: data.candidates[0].content.parts[0].text });
+    const replyText = data.candidates[0].content.parts[0].text.replace(/\*/g, '');
+    res.json({ reply: replyText });
   } catch (e) { res.status(500).json({ error: "Network error" }); }
 });
 
 app.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
+
 
 
 

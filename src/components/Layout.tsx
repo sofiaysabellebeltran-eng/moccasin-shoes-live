@@ -22,7 +22,6 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      {/* This now loads the new Live AI Chat component */}
       <SupportWidget />
     </div>
   );
