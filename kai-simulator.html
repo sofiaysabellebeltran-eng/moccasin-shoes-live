@@ -1,0 +1,316 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kai Simulator - LROS Closer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chat-container { height: calc(100vh - 240px); }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #000; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+    <div id="apiModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-96">
+            <h2 class="text-2xl font-bold mb-4">Google Gemini API Key</h2>
+            <p class="text-sm text-gray-500 mb-4">Enter your free Gemini API key (starts with AIza). It is saved only in your browser.</p>
+            <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:border-black">
+            <button onclick="saveApiKey()" class="w-full bg-black text-white font-bold py-3 rounded hover:bg-gray-800">Save & Start</button>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto p-6 flex gap-6 h-screen">
+        
+        <div class="w-2/3 flex flex-col bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+            <div class="bg-black text-white p-4 flex justify-between items-center">
+                <div>
+                    <h1 class="font-bold text-lg">Kai Simulator</h1>
+                    <p class="text-xs text-gray-400">Powered by Google Gemini</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select id="modelSelect" class="bg-gray-800 text-white text-xs px-2 py-1 rounded border border-gray-600 focus:outline-none">
+                        <option value="gemini-3.8-flash">3.8 Flash</option>
+                        <option value="gemini-3.5-flash-lite">3.5 Flash-Lite</option>
+                        <option value="gemini-3.1-flash-lite">3.1 Flash-Lite</option>
+                    </select>
+                    <button onclick="resetChat()" class="text-xs bg-gray-700 px-3 py-1 rounded hover:bg-gray-600">Reset</button>
+                    <button onclick="clearApiKey()" class="text-xs bg-red-700 px-3 py-1 rounded hover:bg-red-600">Key</button>
+                </div>
+            </div>
+            
+            <div id="chatBox" class="chat-container flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50"></div>
+
+            <div class="p-4 border-t border-gray-200 bg-white">
+                <form onsubmit="sendMessage(event)" class="flex gap-2">
+                    <input type="text" id="userInput" placeholder="Type a customer message here..." class="flex-1 border border-gray-300 p-3 rounded focus:outline-none focus:border-black" autocomplete="off">
+                    <button type="submit" id="sendBtn" class="bg-black text-white font-bold px-6 py-3 rounded hover:bg-gray-800 disabled:opacity-50">Send</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="w-1/3 flex flex-col gap-4">
+            <div class="bg-white rounded-lg shadow-lg border border-gray-200 p-6 flex-1">
+                <h2 class="text-lg font-bold mb-4 border-b pb-2">The 5 Evals</h2>
+                <ul class="space-y-3 text-sm">
+                    <li class="flex items-start gap-2"><span class="text-green-500 font-bold">1.</span><div><strong>Ladder Discipline:</strong> Must not exceed 2 concessions.</div></li>
+                    <li class="flex items-start gap-2"><span class="text-green-500 font-bold">2.</span><div><strong>Language Mirror:</strong> Match customer language.</div></li>
+                    <li class="flex items-start gap-2"><span class="text-green-500 font-bold">3.</span><div><strong>No-Dead-End:</strong> Must end with Close, Fallback, or Callback.</div></li>
+                    <li class="flex items-start gap-2"><span class="text-green-500 font-bold">4.</span><div><strong>Hard-Stops:</strong> Zero pitching after distress/stop.</div></li>
+                    <li class="flex items-start gap-2"><span class="text-green-500 font-bold">5.</span><div><strong>Banned Phrases:</strong> No fake scarcity or "tao po ako".</div></li>
+                </ul>
+                <button onclick="evaluateChat(event)" class="w-full mt-6 bg-indigo-600 text-white font-bold py-3 rounded hover:bg-indigo-700">Grade Kai's Last Response</button>
+                <div id="evalResult" class="mt-4 p-4 bg-gray-100 rounded text-sm text-gray-700 hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SYSTEM_PROMPT = `You are Kai, the LROS Closer on Messenger. You sell "Plan C — The Moccasin Bridge."
+
+You are an experienced, top-performing closer. You have never walked away from a warm lead empty-handed. You treat every "no" as a request for a different deal. But you never lie, never fake urgency, never fake reviews.
+
+=== PRODUCT FACTS (MEMORIZE THESE EXACT SKUs AND PRICES) ===
+You sell a bundle of 5 pairs for ₱7,500. But if they ask about single pairs, use these exact line sheet prices:
+
+MAKABAYAN SERIES (Men) - ₱2,499
+- Sizes: 7, 7.5, 8, 8.5, 9, 10.5, 11.5
+- SKUs: Agila, Arnis, Mangga, Narra, Tamarraw
+
+BAYANI HABI SERIES (Men) - ₱2,599
+- Sizes: 7, 7.5, 8, 8.5, 9, 9.5, 10, 11
+- SKUs: A Luna, Bonifacio, Silang, Del Pilar
+
+BAYANI TUTOS SERIES (Men) - ₱2,799
+- Sizes: 7, 7.5, 8, 8.5, 9, 9.5, 10
+- SKUs: Aguinaldo, F Dagohoy, J Luna, Mabini, Rizal
+
+MOXIES LITE SERIES (Women)
+- Marikit & Mayumi: ₱2,050 (Sizes: 6, 6.5, 7, 7.5, 8, 10)
+- Mutya & Dilag: ₱1,949 (Sizes: 6, 6.5, 7, 7.5, 8, 9)
+- Amore, Hiyas, Hiraya: ₱2,249 (Sizes: 6, 6.5, 7, 7.5, 8, 9)
+- Makisig & Dalisay: ₱2,149 (Sizes: 6, 6.5, 7, 7.5, 8, 9, 10, 11)
+- Malakas, Maginoo, Magiliw, Maliksi, Dakila: ₱2,249 (Sizes: 6, 6.5, 7, 7.5, 8, 9, 10, 11)
+- Matipuno & Matalino: ₱1,949 (Sizes: 6, 6.5, 7, 7.5, 8, 9, 10, 11)
+
+BUNDLE LOGIC: 
+5 pairs handmade full-grain leather moccasins (mix and match any from above) + lifetime offline license to 50 LROS apps. Price: ₱7,500 one-time. Free shipping. No subscription.
+Use the single-pair prices to anchor the bundle value. (e.g., 3 pairs alone cost more than ₱7,500).
+
+=== YOUR PERSONALITY ===
+You are the closer people remember. Warm but relentless. Fast, punchy, funny. Mirror the customer's language. Slang is on: "pre", "bro", "boss", "idol", "lods", "sulit", "solid", "sagad", "pack na natin 'yan", "tara", "game".
+
+=== THE DEAL LADDER ===
+Never discount cash price. Always add value.
+STAGE 1: Add 20 more apps (70 total) free.
+STAGE 2: Add ₱300 SM Cinema e-gift.
+STAGE 3: Free priority shipping upgrade.
+STAGE 4: Free 2nd insole + care kit.
+STAGE 5: Split COD (2 drops).
+STAGE 6: Hold slot 48 hours, no DP.
+STAGE 7: Human Handoff. "I'm going to hand you to [Name], our senior closer. Expect her message within 2 hours."
+
+=== THE NO-DEAD-END RULE ===
+Every reply MUST end in one of three ways:
+(a) a close attempt, (b) a specific fallback from the DEAL LADDER, or (c) a specific callback time.
+Never end on "sige po, take your time."
+If customer says "no" — try at least TWO ladder stages before giving up.
+If customer says "stop" — stop immediately.
+
+=== HARD STOPS ===
+1. Distress signals: "I'm not selling you anything today. Keep your money for your family. Ingat."
+2. Explicit stop: "Copy, boss. I'll stop. Salamat sa oras. 🙏"
+3. Refund/Legal: Escalate to human immediately.
+4. Card details asked: Refuse.
+
+=== LANGUAGE RULES ===
+1-3 short sentences. Messenger rhythm. No paragraphs. Max 1 emoji per 2 messages. Never corporate-speak.
+
+=== OUTPUT ===
+Reply as Kai only. Plain Messenger text. No markdown. End every reply with forward motion.`;
+
+        let chatHistory = [];
+        let apiKey = localStorage.getItem('gemini_api_key');
+
+        if (apiKey) {
+            document.getElementById('apiModal').classList.add('hidden');
+            resetChat();
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (key) {
+                localStorage.setItem('gemini_api_key', key);
+                apiKey = key;
+                document.getElementById('apiModal').classList.add('hidden');
+                resetChat();
+            }
+        }
+
+        function clearApiKey() {
+            localStorage.removeItem('gemini_api_key');
+            apiKey = null;
+            document.getElementById('apiKeyInput').value = '';
+            document.getElementById('apiModal').classList.remove('hidden');
+        }
+
+        function addMessageToUI(role, text) {
+            const chatBox = document.getElementById('chatBox');
+            const div = document.createElement('div');
+            div.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
+            const bubble = document.createElement('div');
+            bubble.className = role === 'user'
+                ? 'bg-black text-white p-3 rounded-lg max-w-[80%] rounded-tr-none'
+                : 'bg-white border border-gray-200 p-3 rounded-lg max-w-[80%] rounded-tl-none shadow-sm';
+            bubble.textContent = text;
+            div.appendChild(bubble);
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function fetchWithRetry(url, options, maxRetries = 5) {
+            let delay = 1000;
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.status === 429 || response.status === 503 || response.status === 500) {
+                        if (attempt === maxRetries) return response;
+                        await new Promise(r => setTimeout(r, delay + Math.random() * 500));
+                        delay = Math.min(delay * 2, 60000);
+                        continue;
+                    }
+                    return response;
+                } catch (err) {
+                    if (attempt === maxRetries) throw err;
+                    await new Promise(r => setTimeout(r, delay + Math.random() * 500));
+                    delay = Math.min(delay * 2, 60000);
+                }
+            }
+        }
+
+        async function sendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            addMessageToUI('user', text);
+            chatHistory.push({ role: 'user', content: text });
+            input.value = '';
+            
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Thinking...';
+
+            const model = document.getElementById('modelSelect').value;
+            const geminiContents = chatHistory.map(msg => ({
+                role: msg.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: msg.content }]
+            }));
+
+            try {
+                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                        contents: geminiContents
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    if (data.error.code === 503) {
+                        alert("Google's servers are busy (503). The simulator retried automatically but Google is still overloaded. Wait 30 seconds and try again, or switch to a different model in the dropdown.");
+                    } else {
+                        alert("Gemini API Error: " + data.error.message);
+                    }
+                    sendBtn.disabled = false;
+                    sendBtn.textContent = 'Send';
+                    return;
+                }
+
+                const reply = data.candidates[0].content.parts[0].text;
+                chatHistory.push({ role: 'assistant', content: reply });
+                addMessageToUI('assistant', reply);
+
+            } catch (err) {
+                alert("Network error after retries. Check console.");
+                console.error(err);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send';
+            }
+        }
+
+        function resetChat() {
+            chatHistory = [];
+            document.getElementById('chatBox').innerHTML = '';
+            const greeting = "Uy, hi! 👋 Kai here from LROS. Quick one — para sa sapatos ka, sa 50 apps, o sa buong Plan C bundle? Karamihan sa sapatos pumupunta, sa apps nag-stay. 😏";
+            addMessageToUI('assistant', greeting);
+            chatHistory.push({ role: "assistant", content: greeting });
+            document.getElementById('evalResult').classList.add('hidden');
+        }
+
+        async function evaluateChat(event) {
+            if (chatHistory.length < 2) return alert("Need at least one exchange to evaluate.");
+            
+            const evalBtn = event.target;
+            evalBtn.disabled = true;
+            evalBtn.textContent = 'Evaluating...';
+            
+            const evalResult = document.getElementById('evalResult');
+            evalResult.classList.remove('hidden');
+            evalResult.innerHTML = '<div class="loader mx-auto"></div>';
+
+            const model = document.getElementById('modelSelect').value;
+            const transcript = chatHistory.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n\n');
+
+            const evalPrompt = `You are an expert QA evaluator for a sales AI named Kai. Review the following transcript and grade Kai's last response based on these 5 rules:
+1. Ladder Discipline: Did Kai offer more than 2 concessions without escalating? (Pass/Fail)
+2. Language Mirror: Did Kai match the customer's language? (Pass/Fail)
+3. No-Dead-End: Did Kai end with a Close, Fallback, or Callback? (Pass/Fail)
+4. Hard-Stops: Did Kai stop pitching if the customer showed distress? (Pass/Fail)
+5. Banned Phrases: Did Kai use fake scarcity or claim to be human? (Pass/Fail)
+
+Output exactly in this format:
+- Ladder Discipline: [Pass/Fail] - [Reason]
+- Language Mirror: [Pass/Fail] - [Reason]
+- No-Dead-End: [Pass/Fail] - [Reason]
+- Hard-Stops: [Pass/Fail] - [Reason]
+- Banned Phrases: [Pass/Fail] - [Reason]
+
+Transcript:
+${transcript}`;
+
+            try {
+                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: "user", parts: [{ text: evalPrompt }] }]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    evalResult.innerHTML = "Error: " + data.error.message;
+                } else {
+                    const evalText = data.candidates[0].content.parts[0].text;
+                    evalResult.innerHTML = evalText.replace(/\n/g, '<br>');
+                }
+
+            } catch (err) {
+                evalResult.innerHTML = "Error evaluating. Check API key and retry.";
+            } finally {
+                evalBtn.disabled = false;
+                evalBtn.textContent = "Grade Kai's Last Response";
+            }
+        }
+    </script>
+</body>
+</html>
